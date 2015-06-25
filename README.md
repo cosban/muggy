@@ -4,8 +4,8 @@
 Created for the sake of learning and memes
 
 ## Installation and Running
->Prerequisite: go must be installed, you must also know how to use it becaus I
-sure as hell don't
+>Prerequisite: go must be installed, you must also know how to use it because 
+I sure as hell don't
 
 To install, simply run the following
 
