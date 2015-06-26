@@ -111,7 +111,6 @@ func NoticeHandler(s ircx.Sender, m *irc.Message) {
 			trusted[pieces[0]] = (pieces[2] == "3")
 		}
 	}
-	log.Println(trusted)
 }
 
 func RegisterConnect(s ircx.Sender, m *irc.Message) {
