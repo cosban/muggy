@@ -16,10 +16,8 @@ var (
 	name, server, password, prefix, channels, owner string
 )
 
-type CommandFunc func(ircx.Sender, *irc.Message, string)
-
 // name of command mapped to the function itself
-var coms = make(map[string]CommandFunc)
+var coms = make(map[string]commands.IrcCommand)
 
 // regex mapped to its reply
 var replies = make(map[*regexp.Regexp]string)
@@ -32,6 +30,9 @@ func main() {
 
 	coms["g"] = commands.Search
 	coms["suicide"] = commands.Quit
+	coms["trust"] = commands.AddUser
+	coms["doubt"] = commands.RemoveUser
+	coms["alias"] = commands.AddAlias
 
 	bot := ircx.WithLogin(server, name, name, password)
 	if err := bot.Connect(); err != nil {
@@ -74,8 +75,8 @@ func configure() {
 			key := regexp.MustCompile(strings.Trim(kvline[0], " "))
 			replies[key] = strings.Trim(kvline[1], " ")
 		}
+		commands.Configure(trusted, coms)
 	}
-
 }
 
 func RegisterHandlers(bot *ircx.Bot) {
