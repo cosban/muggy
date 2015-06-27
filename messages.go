@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/nickvanw/ircx"
@@ -8,9 +9,6 @@ import (
 )
 
 func MessageHandler(s ircx.Sender, m *irc.Message) {
-	if _, ok := trusted[m.Name]; !ok {
-		return
-	}
 	msg := m.Trailing
 	var command string
 	if strings.HasPrefix(msg, name) {
@@ -40,6 +38,7 @@ func MessageHandler(s ircx.Sender, m *irc.Message) {
 }
 
 func runCommand(command string, pieces []string, msg string, s ircx.Sender, m *irc.Message) {
+	fmt.Printf("User %s issued command: %s\n", m.Name, command)
 	var params string
 	if len(pieces) >= 2 {
 		params = strings.SplitN(msg, command, 2)[1]
