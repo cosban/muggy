@@ -57,15 +57,10 @@ func Search(s ircx.Sender, m *irc.Message, message string) {
 		fmt.Println("Issue unmartialing json")
 		return
 	}
-	response := fmt.Sprintf("%s: %s -> %s", m.Prefix.Name, r.Items[0].Link, r.Items[0].Title)
+	response := fmt.Sprintf("\u200B%s: %s -- \u0002%s\u0002: \"%s\" ", m.Prefix.Name, r.Items[0].Link, r.Items[0].Title, r.Items[0].Snippet)
 	s.Send(&irc.Message{
 		Command:  irc.PRIVMSG,
 		Params:   m.Params,
 		Trailing: response,
-	})
-	s.Send(&irc.Message{
-		Command:  irc.PRIVMSG,
-		Params:   m.Params,
-		Trailing: r.Items[0].Snippet,
 	})
 }

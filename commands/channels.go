@@ -23,7 +23,7 @@ func Join(s ircx.Sender, m *irc.Message, message string) {
 		s.Send(&irc.Message{
 			Command:  irc.NOTICE,
 			Params:   []string{m.Name},
-			Trailing: "I have now joined the following channels: " + m.Trailing,
+			Trailing: "I have now joined the following channels: " + message,
 		})
 	}
 }

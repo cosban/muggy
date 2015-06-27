@@ -13,6 +13,10 @@ func AddUser(s ircx.Sender, m *irc.Message, message string) {
 		return
 	}
 	args := strings.Split(message, " ")
+	if len(args[0]) < 1 {
+		ListUsers(s, m, message)
+		return
+	}
 	trusted[args[0]] = true
 	s.Send(&irc.Message{
 		Command:  irc.NOTICE,
