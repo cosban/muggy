@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"regexp"
@@ -27,6 +26,9 @@ var (
 	// the nickname of the user mapped to a boolean of whether they are logged in
 	trusted = make(map[string]bool)
 	owners  = make(map[string]bool)
+	// this one is different, we will only allow registered users to commands, the
+	// boolean is turned to false if they are blocked
+	idents = make(map[string]bool)
 )
 
 func main() {
@@ -57,23 +59,11 @@ func configure() ini.File {
 	prefix, _ = config.Get("bot", "prefix")
 
 	o, _ := config.Get("bot", "owners")
-	o = strings.Replace(o, " ", "", -1)
-	ousers := strings.Split(o, ",")
-	fmt.Printf("Owners: ")
-	for i := 0; i < len(ousers); i++ {
-		owners[ousers[i]] = false
-		fmt.Printf("%s ", ousers[i])
-	}
-
-	fmt.Printf("\nTrusted: ")
+	PopulateMap(o, owners)
 	t, _ := config.Get("bot", "trusted")
-	t = strings.Replace(t, " ", "", -1)
-	tusers := strings.Split(t, ",")
-	for i := 0; i < len(tusers); i++ {
-		trusted[tusers[i]] = false
-		fmt.Printf("%s ", tusers[i])
-	}
-	fmt.Printf("\n")
+	PopulateMap(t, trusted)
+	b, _ := config.Get("bot", "blocked")
+	PopulateMap(b, idents)
 
 	body, err := ioutil.ReadFile("./replies")
 	if err != nil {
@@ -85,7 +75,7 @@ func configure() ini.File {
 			key := regexp.MustCompile(strings.Trim(kvline[0], " "))
 			replies[key] = strings.Trim(kvline[1], " ")
 		}
-		commands.Configure(trusted, owners, coms, &conf)
+		commands.Configure(trusted, owners, idents, coms, &conf)
 	}
 	return config
 }
@@ -100,8 +90,6 @@ func RegisterCommands() {
 	coms["leave"] = commands.Leave
 	coms["restart"] = commands.Restart
 	coms["trusted"] = commands.ListUsers
-
-	log.Printf("%+v", conf)
 
 	for k, v := range conf["aliases"] {
 		k = strings.Trim(k, " ")
@@ -118,6 +106,16 @@ func RegisterCommands() {
 	}
 }
 
+func PopulateMap(s string, m map[string]bool) {
+	s = strings.Replace(s, " ", "", -1)
+	list := strings.Split(s, ",")
+	for i := 0; i < len(list); i++ {
+		if len(list[i]) > 0 {
+			m[list[i]] = false
+		}
+	}
+}
+
 func RegisterHandlers(bot *ircx.Bot) {
 	bot.AddCallback(irc.RPL_WELCOME, ircx.Callback{Handler: ircx.HandlerFunc(RegisterConnect)})
 	bot.AddCallback(irc.PING, ircx.Callback{Handler: ircx.HandlerFunc(PingHandler)})
@@ -127,4 +125,25 @@ func RegisterHandlers(bot *ircx.Bot) {
 	bot.AddCallback(irc.PART, ircx.Callback{Handler: ircx.HandlerFunc(LeaveHandler)})
 	bot.AddCallback(irc.NOTICE, ircx.Callback{Handler: ircx.HandlerFunc(NoticeHandler)})
 	bot.AddCallback(irc.NICK, ircx.Callback{Handler: ircx.HandlerFunc(NickHandler)})
+	bot.AddCallback(irc.RPL_NAMREPLY, ircx.Callback{Handler: ircx.HandlerFunc(NamesHandler)})
+}
+
+func RegisterConnect(s ircx.Sender, m *irc.Message) {
+	s.Send(&irc.Message{
+		Command:  irc.PRIVMSG,
+		Params:   []string{"NICKSERV"},
+		Trailing: "identify " + name + " " + password,
+	})
+	s.Send(&irc.Message{
+		Command: irc.JOIN,
+		Params:  []string{channels},
+	})
+}
+
+func PingHandler(s ircx.Sender, m *irc.Message) {
+	s.Send(&irc.Message{
+		Command:  irc.PONG,
+		Params:   m.Params,
+		Trailing: m.Trailing,
+	})
 }

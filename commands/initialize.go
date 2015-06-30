@@ -13,13 +13,15 @@ type IrcCommand func(ircx.Sender, *irc.Message, string)
 var (
 	coms    map[string]IrcCommand
 	trusted map[string]bool
-	config  ini.File
+	idents  map[string]bool
 	owners  map[string]bool
+	config  ini.File
 )
 
-func Configure(t map[string]bool, o map[string]bool, c map[string]IrcCommand, conf *ini.File) {
+func Configure(t map[string]bool, o map[string]bool, i map[string]bool, c map[string]IrcCommand, conf *ini.File) {
 	trusted = t
 	owners = o
+	idents = i
 	coms = c
 	config = *conf
 }
