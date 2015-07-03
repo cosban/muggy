@@ -11,6 +11,9 @@ import (
 func MessageHandler(s ircx.Sender, m *irc.Message) {
 	msg := m.Trailing
 	var command string
+	if m.Params[0] == name {
+		m.Params = []string{m.Name}
+	}
 	if strings.HasPrefix(strings.ToLower(msg), strings.ToLower(name)) {
 		pieces := strings.Split(msg, " ")
 		if len(pieces) >= 2 {

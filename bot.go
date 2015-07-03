@@ -90,6 +90,7 @@ func RegisterCommands() {
 	coms["leave"] = commands.Leave
 	coms["restart"] = commands.Restart
 	coms["trusted"] = commands.ListUsers
+	coms["mod"] = commands.ModSearch
 
 	for k, v := range conf["aliases"] {
 		k = strings.Trim(k, " ")
