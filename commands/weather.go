@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 
 	"github.com/nickvanw/ircx"
 	"github.com/sorcix/irc"
+	"github.com/vaughan0/go-ini"
 )
 
 type ResultWeather struct {
@@ -22,9 +24,20 @@ type ResultWeather struct {
 	Name string
 }
 
+var weatherkey string
+
+func init() {
+	conf, err := ini.LoadFile("config.ini")
+	if err != nil {
+		log.Panicln("There was an issue with the config file! ", err)
+	}
+	weatherkey, _ = conf.Get("weather", "key")
+	site = ""
+}
+
 func unmarshalWeather(message string) (*ResultWeather, error) {
 	q := url.QueryEscape(message)
-	request := fmt.Sprintf("http://api.openweathermap.org/data/2.5/weather?q=%s", q)
+	request := fmt.Sprintf("http://api.openweathermap.org/data/2.5/weather?APPID=%s&q=%s", weatherkey, q)
 	fmt.Printf("Weather: %s\n", request)
 	resp, err := http.Get(request)
 	if err != nil {

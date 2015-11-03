@@ -9,7 +9,7 @@ import (
 )
 
 func AddUser(s ircx.Sender, m *irc.Message, message string) {
-	if !isOwner(m.Name) {
+	if !isOwner(s, m.Name) {
 		return
 	}
 	args := strings.Split(message, " ")
@@ -26,7 +26,7 @@ func AddUser(s ircx.Sender, m *irc.Message, message string) {
 }
 
 func RemoveUser(s ircx.Sender, m *irc.Message, message string) {
-	if !isOwner(m.Name) {
+	if !isOwner(s, m.Name) {
 		return
 	}
 	args := strings.Split(message, " ")
@@ -42,7 +42,7 @@ func RemoveUser(s ircx.Sender, m *irc.Message, message string) {
 
 func ListUsers(s ircx.Sender, m *irc.Message, message string) {
 	fmt.Printf("Owners: %+v\nTrusted: %+v\n", owners, trusted)
-	if !isTrusted(m.Name) {
+	if !isTrusted(s, m.Name) {
 		return
 	}
 	tlist := ""

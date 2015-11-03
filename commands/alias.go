@@ -8,7 +8,7 @@ import (
 )
 
 func AddAlias(s ircx.Sender, m *irc.Message, message string) {
-	if !isOwner(m.Name) {
+	if !isOwner(s, m.Name) {
 		return
 	}
 	args := strings.Split(message, " ")

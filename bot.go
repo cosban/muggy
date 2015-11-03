@@ -1,12 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"regexp"
 	"strings"
 
-	"github.com/cosban/harkness/commands"
+	"github.com/cosban/muggy/commands"
 	"github.com/nickvanw/ircx"
 	"github.com/sorcix/irc"
 	"github.com/vaughan0/go-ini"
@@ -65,6 +66,8 @@ func configure() ini.File {
 	b, _ := config.Get("bot", "blocked")
 	PopulateMap(b, idents)
 
+	fmt.Printf("Owners: %+v\nTrusted: %+v\nBlocked: %+v\n", o, t, b)
+
 	body, err := ioutil.ReadFile("./replies")
 	if err != nil {
 		log.Panicln("Could not read replies!")
@@ -114,7 +117,7 @@ func PopulateMap(s string, m map[string]bool) {
 	list := strings.Split(s, ",")
 	for i := 0; i < len(list); i++ {
 		if len(list[i]) > 0 {
-			m[list[i]] = false
+			m[strings.ToLower(list[i])] = false
 		}
 	}
 }
@@ -126,9 +129,14 @@ func RegisterHandlers(bot *ircx.Bot) {
 	bot.AddCallback(irc.JOIN, ircx.Callback{Handler: ircx.HandlerFunc(JoinHandler)})
 	bot.AddCallback(irc.QUIT, ircx.Callback{Handler: ircx.HandlerFunc(LeaveHandler)})
 	bot.AddCallback(irc.PART, ircx.Callback{Handler: ircx.HandlerFunc(LeaveHandler)})
-	bot.AddCallback(irc.NOTICE, ircx.Callback{Handler: ircx.HandlerFunc(NoticeHandler)})
 	bot.AddCallback(irc.NICK, ircx.Callback{Handler: ircx.HandlerFunc(NickHandler)})
-	bot.AddCallback(irc.RPL_NAMREPLY, ircx.Callback{Handler: ircx.HandlerFunc(NamesHandler)})
+	bot.AddCallback(irc.ERR_UNKNOWNCOMMAND, ircx.Callback{Handler: ircx.HandlerFunc(UnknownCommandHandler)})
+	bot.AddCallback(irc.RPL_WHOREPLY, ircx.Callback{Handler: ircx.HandlerFunc(WhoisHandler)})
+	// non standard RPL_WHOISACCOUNT
+	bot.AddCallback("330", ircx.Callback{Handler: ircx.HandlerFunc(WhoisHandler)})
+	bot.AddCallback("354", ircx.Callback{Handler: ircx.HandlerFunc(WhoisHandler)})
+	// ACCOUNT-NOTIFY
+	bot.AddCallback("ACCOUNT", ircx.Callback{Handler: ircx.HandlerFunc(AccountHandler)})
 }
 
 func RegisterConnect(s ircx.Sender, m *irc.Message) {
@@ -136,6 +144,10 @@ func RegisterConnect(s ircx.Sender, m *irc.Message) {
 		Command:  irc.PRIVMSG,
 		Params:   []string{"NICKSERV"},
 		Trailing: "identify " + name + " " + password,
+	})
+	s.Send(&irc.Message{
+		Command:  fmt.Sprintf("%s %s", irc.CAP, irc.CAP_REQ),
+		Trailing: "account-notify extended-join",
 	})
 	s.Send(&irc.Message{
 		Command: irc.JOIN,
@@ -149,4 +161,8 @@ func PingHandler(s ircx.Sender, m *irc.Message) {
 		Params:   m.Params,
 		Trailing: m.Trailing,
 	})
+}
+
+func UnknownCommandHandler(s ircx.Sender, m *irc.Message) {
+	fmt.Printf("UNKNOWN COMMAND -- %+v\n", m)
 }

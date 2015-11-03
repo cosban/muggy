@@ -10,7 +10,7 @@ import (
 )
 
 func Quit(s ircx.Sender, m *irc.Message, message string) {
-	if !isOwner(m.Name) {
+	if !isOwner(s, m.Name) {
 		return
 	}
 	msg := &irc.Message{
@@ -25,7 +25,7 @@ func Quit(s ircx.Sender, m *irc.Message, message string) {
 }
 
 func Restart(s ircx.Sender, m *irc.Message, message string) {
-	if !isOwner(m.Name) {
+	if !isOwner(s, m.Name) {
 		return
 	}
 	msg := &irc.Message{

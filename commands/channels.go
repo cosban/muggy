@@ -8,7 +8,7 @@ import (
 )
 
 func Join(s ircx.Sender, m *irc.Message, message string) {
-	if !isOwner(m.Name) {
+	if !isOwner(s, m.Name) {
 		return
 	}
 	if strings.HasPrefix(message, "#") {
@@ -29,7 +29,7 @@ func Join(s ircx.Sender, m *irc.Message, message string) {
 }
 
 func Leave(s ircx.Sender, m *irc.Message, message string) {
-	if !isOwner(m.Name) {
+	if !isOwner(s, m.Name) {
 		return
 	}
 	s.Send(&irc.Message{
