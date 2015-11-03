@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/nickvanw/ircx"
@@ -12,7 +11,6 @@ func JoinHandler(s ircx.Sender, m *irc.Message) {
 	if m.Name != name {
 		userAdd(m.Name, m.Trailing)
 	} else {
-		fmt.Printf("%+v\n", m.Params)
 		s.Send(&irc.Message{
 			Command:  irc.WHO,
 			Params:   []string{m.Params[0]},
@@ -30,24 +28,28 @@ func WhoisHandler(s ircx.Sender, m *irc.Message) {
 }
 
 func NickHandler(s ircx.Sender, m *irc.Message) {
+	if v, ok := owners[m.Name]; ok && v {
+		owners[m.Trailing] = true
+		delete(owners, m.Name)
+	}
 	if v, ok := trusted[m.Name]; ok && v {
 		trusted[m.Trailing] = true
 		delete(trusted, m.Name)
-	} else if v, ok := owners[m.Name]; ok && v {
-		owners[m.Trailing] = true
-		delete(owners, m.Name)
-	} else if v, ok := idents[m.Name]; ok && v {
+	}
+	if v, ok := idents[m.Name]; ok && v {
 		idents[m.Trailing] = true
 		delete(idents, m.Name)
 	}
 }
 
 func LeaveHandler(s ircx.Sender, m *irc.Message) {
+	if _, ok := owners[m.Name]; ok {
+		owners[m.Name] = false
+	}
 	if _, ok := trusted[m.Name]; ok {
 		trusted[m.Name] = false
-	} else if _, ok := owners[m.Name]; ok {
-		owners[m.Name] = false
-	} else if v, ok := idents[m.Name]; ok && v {
+	}
+	if v, ok := idents[m.Name]; ok && v {
 		delete(idents, m.Name)
 	}
 }
