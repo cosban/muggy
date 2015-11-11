@@ -35,15 +35,15 @@ var (
 func main() {
 	conf = configure()
 
-	RegisterCommands()
-
 	bot := ircx.Classic(server, name)
+
+	RegisterHandlers(bot)
+
 	if err := bot.Connect(); err != nil {
 		log.Panicln("Unable to dial IRC Server ", err)
 	}
 
-	RegisterHandlers(bot)
-	bot.CallbackLoop()
+	bot.HandleLoop()
 }
 
 func configure() ini.File {
@@ -80,10 +80,11 @@ func configure() ini.File {
 		}
 		commands.Configure(trusted, owners, idents, coms, &conf)
 	}
+	registerCommands()
 	return config
 }
 
-func RegisterCommands() {
+func registerCommands() {
 	coms["g"] = commands.Search
 	coms["suicide"] = commands.Quit
 	coms["trust"] = commands.AddUser
@@ -125,20 +126,20 @@ func PopulateMap(s string, m map[string]bool) {
 }
 
 func RegisterHandlers(bot *ircx.Bot) {
-	bot.AddCallback(irc.RPL_WELCOME, ircx.Callback{Handler: ircx.HandlerFunc(RegisterConnect)})
-	bot.AddCallback(irc.PING, ircx.Callback{Handler: ircx.HandlerFunc(PingHandler)})
-	bot.AddCallback(irc.PRIVMSG, ircx.Callback{Handler: ircx.HandlerFunc(MessageHandler)})
-	bot.AddCallback(irc.JOIN, ircx.Callback{Handler: ircx.HandlerFunc(JoinHandler)})
-	bot.AddCallback(irc.QUIT, ircx.Callback{Handler: ircx.HandlerFunc(LeaveHandler)})
-	bot.AddCallback(irc.PART, ircx.Callback{Handler: ircx.HandlerFunc(LeaveHandler)})
-	bot.AddCallback(irc.NICK, ircx.Callback{Handler: ircx.HandlerFunc(NickHandler)})
-	bot.AddCallback(irc.ERR_UNKNOWNCOMMAND, ircx.Callback{Handler: ircx.HandlerFunc(UnknownCommandHandler)})
-	bot.AddCallback(irc.RPL_WHOREPLY, ircx.Callback{Handler: ircx.HandlerFunc(WhoisHandler)})
+	bot.HandleFunc(irc.RPL_WELCOME, RegisterConnect)
+	bot.HandleFunc(irc.PING, PingHandler)
+	bot.HandleFunc(irc.PRIVMSG, MessageHandler)
+	bot.HandleFunc(irc.JOIN, JoinHandler)
+	bot.HandleFunc(irc.QUIT, LeaveHandler)
+	bot.HandleFunc(irc.PART, LeaveHandler)
+	bot.HandleFunc(irc.NICK, NickHandler)
+	bot.HandleFunc(irc.ERR_UNKNOWNCOMMAND, UnknownCommandHandler)
+	bot.HandleFunc(irc.RPL_WHOREPLY, WhoisHandler)
 	// non standard RPL_WHOISACCOUNT
-	bot.AddCallback("330", ircx.Callback{Handler: ircx.HandlerFunc(WhoisHandler)})
-	bot.AddCallback("354", ircx.Callback{Handler: ircx.HandlerFunc(WhoisHandler)})
+	bot.HandleFunc("330", WhoisHandler)
+	bot.HandleFunc("354", WhoisHandler)
 	// ACCOUNT-NOTIFY
-	bot.AddCallback("ACCOUNT", ircx.Callback{Handler: ircx.HandlerFunc(AccountHandler)})
+	bot.HandleFunc("ACCOUNT", AccountHandler)
 }
 
 func RegisterConnect(s ircx.Sender, m *irc.Message) {
