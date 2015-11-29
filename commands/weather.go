@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/nickvanw/ircx"
 	"github.com/sorcix/irc"
@@ -36,8 +37,15 @@ func init() {
 }
 
 func unmarshalWeather(message string) (*ResultWeather, error) {
-	q := url.QueryEscape(message)
-	request := fmt.Sprintf("http://api.openweathermap.org/data/2.5/weather?APPID=%s&q=%s", weatherkey, q)
+	var request string
+	zip := parseZip(message)
+	if len(zip) > 1 {
+		q := url.QueryEscape(zip)
+		request = fmt.Sprintf("http://api.openweathermap.org/data/2.5/weather?APPID=%s&zip=%s", weatherkey, q)
+	} else {
+		q := url.QueryEscape(message)
+		request = fmt.Sprintf("http://api.openweathermap.org/data/2.5/weather?APPID=%s&q=%s", weatherkey, q)
+	}
 	fmt.Printf("Weather: %s\n", request)
 	resp, err := http.Get(request)
 	if err != nil {
@@ -82,7 +90,7 @@ func Weather(s ircx.Sender, m *irc.Message, message string) {
 	})
 }
 
-func Tempurature(s ircx.Sender, m *irc.Message, message string) {
+func Temperature(s ircx.Sender, m *irc.Message, message string) {
 	r, err := unmarshalWeather(message)
 	response := fmt.Sprintf("\u200B%s: 0.0 Kelvin. Seriously.", m.Prefix.Name)
 	if err == nil && r != nil {
@@ -110,4 +118,13 @@ func kelvinToC(k float64) float64 {
 
 func kelvinToF(k float64) float64 {
 	return (k-273.15)*1.8 + 32
+}
+
+func parseZip(s string) string {
+	for _, element := range strings.Split(s, " ") {
+		if strings.HasPrefix(element, "zip:") {
+			return element[len("zip:"):]
+		}
+	}
+	return ""
 }

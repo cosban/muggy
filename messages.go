@@ -50,6 +50,6 @@ func runCommand(command string, pieces []string, msg string, s ircx.Sender, m *i
 		params = ""
 	}
 	if c, ok := coms[command]; ok {
-		c(s, m, params)
+		c.Handle(s, m, params)
 	}
 }

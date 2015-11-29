@@ -19,7 +19,7 @@ var (
 	conf ini.File
 
 	// name of command mapped to the function itself
-	coms = make(map[string]commands.IrcCommand)
+	coms = make(map[string]commands.CommandStruct)
 
 	// regex mapped to its reply
 	replies = make(map[*regexp.Regexp]string)
@@ -39,6 +39,7 @@ func main() {
 
 	RegisterHandlers(bot)
 
+	fmt.Printf("Attempting to connect...")
 	if err := bot.Connect(); err != nil {
 		log.Panicln("Unable to dial IRC Server ", err)
 	}
@@ -84,21 +85,26 @@ func configure() ini.File {
 	return config
 }
 
+func registerCommand(com commands.CommandStruct) {
+	coms[com.Name] = com
+}
+
 func registerCommands() {
-	coms["g"] = commands.Search
-	coms["suicide"] = commands.Quit
-	coms["trust"] = commands.AddUser
-	coms["doubt"] = commands.RemoveUser
-	coms["alias"] = commands.AddAlias
-	coms["join"] = commands.Join
-	coms["leave"] = commands.Leave
-	coms["restart"] = commands.Restart
-	coms["trusted"] = commands.ListUsers
-	coms["mod"] = commands.ModSearch
-	coms["we"] = commands.Weather
-	coms["temp"] = commands.Tempurature
-	coms["raw"] = commands.Raw
-	coms["topic"] = commands.Topic
+	registerCommand(commands.CommandStruct{"google", "<query>", "Queries google for search results.", commands.Search})
+	registerCommand(commands.CommandStruct{"quit", "", "Forces the bot to quit (SEE ALSO: restart)", commands.Quit})
+	registerCommand(commands.CommandStruct{"trust", "<nick>", "Makes the bot trust a nick (SEE ALSO: doubt, trusted)", commands.Trust})
+	registerCommand(commands.CommandStruct{"doubt", "<nick>", "Makes the bot no longer trust a nick (SEE ALSO: trust, trusted", commands.Doubt})
+	registerCommand(commands.CommandStruct{"alias", "<command>", "Creates an alias which can be used to run a command", commands.Alias})
+	registerCommand(commands.CommandStruct{"join", "<channel>", "Makes the bot join a channel (SEE ALSO: leave)", commands.Join})
+	registerCommand(commands.CommandStruct{"leave", "<channel>", "Makes the bot leave a channel (SEE ALSO: join)", commands.Leave})
+	registerCommand(commands.CommandStruct{"restart", "", "Forces teh bot to restart (SEE ALSO: quit)", commands.Restart})
+	registerCommand(commands.CommandStruct{"trusted", "", "Displays a list of trusted users (SEE ALSO: trust, doubt)", commands.Trusted})
+	registerCommand(commands.CommandStruct{"mod", "<query>", "Searches Nexus for mods", commands.Mod})
+	registerCommand(commands.CommandStruct{"weather", "<city>, [state]", "Queries for weather in a given city (SEE ALSO: temp)", commands.Weather})
+	registerCommand(commands.CommandStruct{"temp", "<city>, state", "Queries for temperature in a given city (SEE ALSO: weather)", commands.Temperature})
+	registerCommand(commands.CommandStruct{"raw", "<numeric> <recipient>:[message]", "Forces the bot to perform the given raw command", commands.Raw})
+	registerCommand(commands.CommandStruct{"topic", "<message>", "Causes the bot to set the topic", commands.Topic})
+	registerCommand(commands.CommandStruct{"help", "[command]", "Displays these words", commands.Help})
 
 	for k, v := range conf["aliases"] {
 		k = strings.Trim(k, " ")
@@ -143,6 +149,7 @@ func RegisterHandlers(bot *ircx.Bot) {
 }
 
 func RegisterConnect(s ircx.Sender, m *irc.Message) {
+	fmt.Printf("Connected... now identifying and joining chans")
 	s.Send(&irc.Message{
 		Command:  irc.PRIVMSG,
 		Params:   []string{"NICKSERV"},

@@ -8,13 +8,13 @@ import (
 	"github.com/sorcix/irc"
 )
 
-func AddUser(s ircx.Sender, m *irc.Message, message string) {
+func Trust(s ircx.Sender, m *irc.Message, message string) {
 	if !isOwner(s, m.Name) {
 		return
 	}
 	args := strings.Split(message, " ")
 	if len(args[0]) < 1 {
-		ListUsers(s, m, message)
+		Trusted(s, m, message)
 		return
 	}
 	trusted[args[0]] = true
@@ -25,7 +25,7 @@ func AddUser(s ircx.Sender, m *irc.Message, message string) {
 	})
 }
 
-func RemoveUser(s ircx.Sender, m *irc.Message, message string) {
+func Doubt(s ircx.Sender, m *irc.Message, message string) {
 	if !isOwner(s, m.Name) {
 		return
 	}
@@ -40,7 +40,23 @@ func RemoveUser(s ircx.Sender, m *irc.Message, message string) {
 	}
 }
 
-func ListUsers(s ircx.Sender, m *irc.Message, message string) {
+func Block(s ircx.Sender, m *irc.Message, message string) {
+	if !isOwner(s, m.Name) {
+		return
+	}
+	args := strings.Split(message, " ")
+	if _, ok := trusted[args[0]]; ok {
+		idents[args[0]] = false
+		s.Send(&irc.Message{
+			Command:  irc.NOTICE,
+			Params:   []string{m.Name},
+			Trailing: args[0] + " is now blocked.",
+		})
+	}
+
+}
+
+func Trusted(s ircx.Sender, m *irc.Message, message string) {
 	fmt.Printf("Owners: %+v\nTrusted: %+v\n", owners, trusted)
 	if !isTrusted(s, m.Name) {
 		return

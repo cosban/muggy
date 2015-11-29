@@ -8,17 +8,22 @@ import (
 	"github.com/vaughan0/go-ini"
 )
 
-type IrcCommand func(ircx.Sender, *irc.Message, string)
+type CommandHandler func(ircx.Sender, *irc.Message, string)
+
+type CommandStruct struct {
+	Name, Usage, Summary string
+	Handle               CommandHandler
+}
 
 var (
-	coms    map[string]IrcCommand
+	coms    map[string]CommandStruct
 	trusted map[string]bool
 	idents  map[string]bool
 	owners  map[string]bool
 	config  ini.File
 )
 
-func Configure(t map[string]bool, o map[string]bool, i map[string]bool, c map[string]IrcCommand, conf *ini.File) {
+func Configure(t map[string]bool, o map[string]bool, i map[string]bool, c map[string]CommandStruct, conf *ini.File) {
 	trusted = t
 	owners = o
 	idents = i

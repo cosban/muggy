@@ -7,7 +7,7 @@ import (
 	"github.com/sorcix/irc"
 )
 
-func AddAlias(s ircx.Sender, m *irc.Message, message string) {
+func Alias(s ircx.Sender, m *irc.Message, message string) {
 	if !isOwner(s, m.Name) {
 		return
 	}

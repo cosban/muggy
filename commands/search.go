@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/nickvanw/ircx"
 	"github.com/sorcix/irc"
@@ -37,9 +38,9 @@ func Search(s ircx.Sender, m *irc.Message, message string) {
 	if len(message) < 1 {
 		return
 	}
+	site = parseSite(message)
 	q := url.QueryEscape(message)
 	request := fmt.Sprintf("https://www.googleapis.com/customsearch/v1?&key=%s&cx=%s&q=%s&siteSearch=%s&fields=items&num=1", key, cx, q, site)
-	fmt.Printf("Searching: %s\n", request)
 	resp, err := http.Get(request)
 	site = ""
 	if err != nil {
@@ -72,7 +73,16 @@ func Search(s ircx.Sender, m *irc.Message, message string) {
 
 }
 
-func ModSearch(s ircx.Sender, m *irc.Message, message string) {
+func parseSite(s string) string {
+	for _, element := range strings.Split(s, " ") {
+		if strings.HasPrefix(element, "site:") {
+			return element[len("site:"):]
+		}
+	}
+	return ""
+}
+
+func Mod(s ircx.Sender, m *irc.Message, message string) {
 	site = "www.nexusmods.com"
 	Search(s, m, message)
 }
