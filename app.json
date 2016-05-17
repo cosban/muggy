@@ -1,0 +1,13 @@
+{
+  "name": "muggy",
+  "description": "A terribly written irc bot implementation using golang and memes",
+  "keywords": [
+    "irc",
+    "go",
+    "muggy"
+  ],
+  "image": "heroku/go:1.6",
+  "mount_dir": "src/github.com/cosban/muggy",
+  "website": "http://github.com/cosban/muggy",
+  "repository": "http://github.com/cosban//muggy"
+}
