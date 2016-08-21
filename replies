@@ -1,0 +1,3 @@
+.[oo]+p  :=:  beep
+.[ee]+p  :=:  boop
+(?i)(\bmuggy\b)(?:[^.]|\.\s)*(\binsane\b)|(\binsane\b)(?:[^.]|\.\s)*(\bmuggy\b) :=:  Of course I'm obsessed! They made me this way! You think I don't know how crazy I sound? Of course I do! THEY PROGRAMMED ME TO KNOW THAT TOooo-arrr...

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/cosban/muggy/messages"
 	"github.com/nickvanw/ircx"
 	"github.com/sorcix/irc"
 )
@@ -18,7 +19,7 @@ func Trust(s ircx.Sender, m *irc.Message, message string) {
 		return
 	}
 	trusted[args[0]] = true
-	s.Send(&irc.Message{
+	messages.QueueMessages(s, &irc.Message{
 		Command:  irc.NOTICE,
 		Params:   []string{m.Name},
 		Trailing: "I now trust " + args[0],
@@ -32,7 +33,7 @@ func Doubt(s ircx.Sender, m *irc.Message, message string) {
 	args := strings.Split(message, " ")
 	if _, ok := trusted[args[0]]; ok {
 		delete(trusted, args[0])
-		s.Send(&irc.Message{
+		messages.QueueMessages(s, &irc.Message{
 			Command:  irc.NOTICE,
 			Params:   []string{m.Name},
 			Trailing: "I no longer trust " + args[0],
@@ -47,7 +48,7 @@ func Block(s ircx.Sender, m *irc.Message, message string) {
 	args := strings.Split(message, " ")
 	if _, ok := trusted[args[0]]; ok {
 		idents[args[0]] = false
-		s.Send(&irc.Message{
+		messages.QueueMessages(s, &irc.Message{
 			Command:  irc.NOTICE,
 			Params:   []string{m.Name},
 			Trailing: args[0] + " is now blocked.",
@@ -79,15 +80,17 @@ func Trusted(s ircx.Sender, m *irc.Message, message string) {
 	if len(olist) > 0 {
 		olist = olist[:len(olist)-2]
 	}
-	s.Send(&irc.Message{
-		Command:  irc.NOTICE,
-		Params:   []string{m.Name},
-		Trailing: "I trust the following users: " + tlist,
-	})
-	s.Send(&irc.Message{
-		Command:  irc.NOTICE,
-		Params:   []string{m.Name},
-		Trailing: "I obey the following users: " + olist,
-	})
+	messages.QueueMessages(s,
+		&irc.Message{
+			Command:  irc.NOTICE,
+			Params:   []string{m.Name},
+			Trailing: "I trust the following users: " + tlist,
+		},
+		&irc.Message{
+			Command:  irc.NOTICE,
+			Params:   []string{m.Name},
+			Trailing: "I obey the following users: " + olist,
+		},
+	)
 	fmt.Printf("I trust the following users: %s\nI obey the following users: %s\n", tlist, olist)
 }

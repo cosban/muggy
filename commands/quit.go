@@ -3,8 +3,9 @@ package commands
 import (
 	"log"
 	"os"
-	"os/exec"
+	"syscall"
 
+	"github.com/cosban/muggy/messages"
 	"github.com/nickvanw/ircx"
 	"github.com/sorcix/irc"
 )
@@ -13,14 +14,12 @@ func Quit(s ircx.Sender, m *irc.Message, message string) {
 	if !isOwner(s, m.Name) {
 		return
 	}
-	msg := &irc.Message{
+	messages.QueueMessages(s, &irc.Message{
 		Command:  irc.QUIT,
 		Params:   []string{" "},
 		Trailing: "No one ever asks about Muggy!",
-	}
-	s.Send(msg)
-
-	log.Println(msg.Trailing)
+	})
+	messages.StopLoop()
 	os.Exit(1)
 }
 
@@ -28,14 +27,8 @@ func Restart(s ircx.Sender, m *irc.Message, message string) {
 	if !isOwner(s, m.Name) {
 		return
 	}
-	msg := &irc.Message{
-		Command:  irc.QUIT,
-		Params:   []string{" "},
-		Trailing: "No one ever asks about Muggy!",
-	}
 
-	s.Send(msg)
-
-	script, _ := config.Get("bot", "script")
-	exec.Command(script)
+	gopath := os.Getenv("GOPATH")
+	err := syscall.Exec(gopath+"/bin/muggy", []string{"muggy"}, os.Environ())
+	log.Print(err)
 }

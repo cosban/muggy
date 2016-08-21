@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/cosban/muggy/messages"
 	"github.com/nickvanw/ircx"
 	"github.com/sorcix/irc"
 )
@@ -14,30 +15,14 @@ func Help(s ircx.Sender, m *irc.Message, message string) {
 	}
 	args := strings.Split(message, " ")
 	if len(args[0]) < 1 {
-		s.Send(&irc.Message{
-			Command:  irc.NOTICE,
-			Params:   []string{m.Name},
-			Trailing: "-------- HELP --------",
-		})
+		var msgs []string
+		comstr := ""
 		for _, v := range coms {
-			s.Send(&irc.Message{
-				Command:  irc.NOTICE,
-				Params:   []string{m.Name},
-				Trailing: fmt.Sprintf("%s %s -- %s", v.Name, v.Usage, v.Summary),
-			})
+			comstr = fmt.Sprintf("%s, %s", comstr, v.Name)
 		}
-		s.Send(&irc.Message{
-			Command:  irc.NOTICE,
-			Params:   []string{m.Name},
-			Trailing: "------ END HELP ------",
-		})
-	} else {
-		if v, ok := coms[args[0]]; ok {
-			s.Send(&irc.Message{
-				Command:  irc.NOTICE,
-				Params:   []string{m.Name},
-				Trailing: fmt.Sprintf("%s %s -- %s", v.Name, v.Usage, v.Summary),
-			})
-		}
+		msgs = append(msgs, "-------- HELP --------", "NOTE: To view usage of a command, please use .help <command>", comstr[2:], "------ END HELP ------")
+		messages.BuildMessages(s, irc.NOTICE, []string{m.Name}, msgs...)
+	} else if v, ok := coms[args[0]]; ok {
+		messages.BuildMessages(s, irc.NOTICE, []string{m.Name}, fmt.Sprintf("%s %s -- %s", v.Name, v.Usage, v.Summary))
 	}
 }

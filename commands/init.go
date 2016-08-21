@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 
+	"github.com/cosban/muggy/messages"
 	"github.com/nickvanw/ircx"
 	"github.com/sorcix/irc"
 	"github.com/vaughan0/go-ini"
@@ -32,10 +33,10 @@ func Configure(t map[string]bool, o map[string]bool, i map[string]bool, c map[st
 }
 
 func identRequest(s ircx.Sender, user string) {
-	s.Send(&irc.Message{
+	messages.QueueMessages(s, &irc.Message{
 		Command:  irc.NOTICE,
 		Params:   []string{user},
-		Trailing: "I don't recognize you! Please say identify with nickserv then give me a mug :D",
+		Trailing: "I don't recognize you! Please identify with services.",
 	})
 }
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"strings"
 
 	"github.com/nickvanw/ircx"
@@ -19,14 +20,18 @@ func JoinHandler(s ircx.Sender, m *irc.Message) {
 	}
 }
 
+// AccountHandler is called when a user uses services to sign in
 func AccountHandler(s ircx.Sender, m *irc.Message) {
-	userAdd(m.Name, m.Params[0])
+	if len(m.Params) > 0 {
+		userAdd(m.Name, m.Params[0])
+	}
 }
 
 func WhoisHandler(s ircx.Sender, m *irc.Message) {
 	userAdd(m.Params[1], m.Params[2])
 }
 
+// NickHandler is called on nickname changes
 func NickHandler(s ircx.Sender, m *irc.Message) {
 	if v, ok := owners[m.Name]; ok && v {
 		owners[m.Trailing] = true
@@ -57,6 +62,7 @@ func LeaveHandler(s ircx.Sender, m *irc.Message) {
 func userAdd(nick string, account string) {
 	account = strings.ToLower(account)
 	if _, ok := owners[account]; ok {
+		log.Printf("Adding owner: %s", nick)
 		owners[nick] = true
 	}
 	if _, ok := trusted[account]; ok {
