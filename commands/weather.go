@@ -1,21 +1,16 @@
 package commands
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"log"
-	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/cosban/muggy/messages"
 	"github.com/nickvanw/ircx"
 	"github.com/sorcix/irc"
-	"github.com/vaughan0/go-ini"
 )
 
-type ResultWeather struct {
+type WeatherData struct {
 	Weather []struct {
 		Id                      int
 		Main, Description, Icon string
@@ -29,18 +24,7 @@ type ResultWeather struct {
 	Name string
 }
 
-var weatherkey string
-
-func init() {
-	conf, err := ini.LoadFile("config.ini")
-	if err != nil {
-		log.Panicln("There was an issue with the config file! ", err)
-	}
-	weatherkey, _ = conf.Get("weather", "key")
-	site = ""
-}
-
-func unmarshalWeather(message string) (*ResultWeather, error) {
+func unmarshalWeather(message string) (*WeatherData, error) {
 	var request string
 	zip := parseZip(message)
 	if len(zip) > 1 {
@@ -50,27 +34,10 @@ func unmarshalWeather(message string) (*ResultWeather, error) {
 		q := url.QueryEscape(message)
 		request = fmt.Sprintf("http://api.openweathermap.org/data/2.5/weather?APPID=%s&q=%s", weatherkey, q)
 	}
-	fmt.Printf("Weather: %s\n", request)
-	resp, err := http.Get(request)
-	if err != nil {
-		fmt.Println("Issue connecting to Weather")
-		return nil, err
-	}
 
-	contents, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Issue reading json")
-		return nil, err
-	}
-	defer resp.Body.Close()
+	r := &WeatherData{}
+	getJSON(request, r)
 
-	r := &ResultWeather{}
-	err = json.Unmarshal(contents, &r)
-	if err != nil {
-		fmt.Println("Issue unmartialing json")
-		fmt.Println(err)
-		return nil, err
-	}
 	fmt.Printf("%+v\n", r)
 	if r.Main.Temp == 0 {
 		r = nil

@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"fmt"
+	"log"
 	"strings"
 
 	"github.com/cosban/muggy/messages"
@@ -58,7 +58,6 @@ func Block(s ircx.Sender, m *irc.Message, message string) {
 }
 
 func Trusted(s ircx.Sender, m *irc.Message, message string) {
-	fmt.Printf("Owners: %+v\nTrusted: %+v\n", owners, trusted)
 	if !isTrusted(s, m.Name) {
 		return
 	}
@@ -92,5 +91,5 @@ func Trusted(s ircx.Sender, m *irc.Message, message string) {
 			Trailing: "I obey the following users: " + olist,
 		},
 	)
-	fmt.Printf("I trust the following users: %s\nI obey the following users: %s\n", tlist, olist)
+	log.Printf("I trust the following users: %s\nI obey the following users: %s\n", tlist, olist)
 }

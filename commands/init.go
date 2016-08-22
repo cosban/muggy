@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/cosban/muggy/messages"
 	"github.com/nickvanw/ircx"
@@ -17,12 +18,23 @@ type CommandStruct struct {
 }
 
 var (
-	coms    map[string]CommandStruct
-	trusted map[string]bool
-	idents  map[string]bool
-	owners  map[string]bool
-	config  ini.File
+	coms                map[string]CommandStruct
+	trusted             map[string]bool
+	idents              map[string]bool
+	owners              map[string]bool
+	config              ini.File
+	key, cx, weatherkey string
 )
+
+func init() {
+	conf, err := ini.LoadFile("config.ini")
+	if err != nil {
+		log.Panicln("There was an issue with the config file! ", err)
+	}
+	key, _ = conf.Get("google", "key")
+	cx, _ = conf.Get("google", "cx")
+	weatherkey, _ = conf.Get("weather", "key")
+}
 
 func Configure(t map[string]bool, o map[string]bool, i map[string]bool, c map[string]CommandStruct, conf *ini.File) {
 	trusted = t

@@ -275,6 +275,18 @@ func performRegistrations(bot *ircx.Bot) {
 		Summary: "Spins the six shooter before firing",
 		Handle:  commands.SpinFire,
 	})
+	registerCommand(commands.CommandStruct{
+		Name:    "taf",
+		Usage:   "[station]",
+		Summary: "Replies with a raw taf report for the queried station",
+		Handle:  commands.Taf,
+	})
+	registerCommand(commands.CommandStruct{
+		Name:    "metar",
+		Usage:   "[station]",
+		Summary: "Replies with a raw metar report for the queried station",
+		Handle:  commands.Metar,
+	})
 
 	for k := range coms {
 		log.Printf("Command Registered: %s", k)
