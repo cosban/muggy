@@ -68,7 +68,7 @@ func SearchYoutube(s ircx.Sender, m *irc.Message, message string) {
 	if len(r.Items) > 0 {
 		response = fmt.Sprintf("\u200B%s: https://youtube.com/watch?v=%s -- \u0002%s by %s\u0002: \"%s\" ", m.Prefix.Name, r.Items[0].Id.VideoId, r.Items[0].Snippet.Title, r.Items[0].Snippet.ChannelTitle, r.Items[0].Snippet.Description)
 	}
-
+	
 	messages.QueueMessages(s, &irc.Message{
 		Command:  irc.PRIVMSG,
 		Params:   m.Params,
